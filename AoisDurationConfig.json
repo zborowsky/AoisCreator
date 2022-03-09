@@ -1,0 +1,8 @@
+{
+    "SampleVideoName": "Timestamps-2021.10.08-10.06.32 (u01)",
+
+    "FirstAnimalNearTracks": ["00:01:40", "00:01:50"],
+    "OccupiedTrack": ["00:02:12", "00:02:20", "00:02:25", "00:02:35"],
+    "FirstManNearTracks": ["00:02:40", "00:02:54", "00:03:10", "00:03:21"],
+    "EngineFailure": ["00:03:36"]
+}
