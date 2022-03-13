@@ -6,7 +6,9 @@ import sys
 
 import AoisCreator
 import EventOccurrenceTimeCalculator
+import ResultPrinter
 import TimestampFileParser
+import DataAnalyzer
 
 
 def check_if_dir_exist(result_dir):
@@ -38,29 +40,35 @@ def update_event_config(duration_dict, event_config_dir, event_config_data):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process some arguments.')
     parser.add_argument('--config', dest='config', default="EventConfigs.json", type=str, help='Default json config is EventContfigs.json')
-    parser.add_argument('--result_dir', dest='result_dir', default="results", type=str, help='Default result dir is results')
+    parser.add_argument('--result_dir', dest='result_dir', default="CreatedAois", type=str, help='Default result dir is results')
     parser.add_argument('--timestamp_dir', dest='timestamp_dir', type=str, help='Here put dir to timestamp files')
 
     args = parser.parse_args()
 
-    with open(args.config, "r") as json_file:
-        events_data = json.load(json_file)
+    # with open(args.config, "r") as json_file:
+    #     events_data = json.load(json_file)
+    #
+    # with open("AoisDurationConfig.json", "r") as json_file:
+    #     duration_data = json.load(json_file)
+    #
+    # check_if_dir_exist(args.result_dir)
+    #
+    # timestamp_excel_parser = TimestampFileParser.TimestampFileParser()
+    # timestamp_data = timestamp_excel_parser.get_aoi_start_end_from_data(args.timestamp_dir)
+    #
+    # event_names = [event_name for [event_name, event_data] in events_data.items() if event_name != "DurationTimestampSample"]
+    # event_time_calculator = EventOccurrenceTimeCalculator.EventOccurrenceTimeCalculator(config_file=events_data, timestamp_data=timestamp_data)
+    # aois_data_collection = event_time_calculator.get_data_from_mileage(args.timestamp_dir)
+    #
+    # aois_duration_data = event_time_calculator.get_millage_from_time(args.timestamp_dir, duration_data)
+    #
+    # update_event_config(aois_duration_data, args.config, events_data)
+    #
+    # aois_creator = AoisCreator.AoisCreator(aois_data_collection, events_data, timestamp_data, args.result_dir)
+    # aois_creator.create_multiple_aoi_files()
 
-    with open("AoisDurationConfig.json", "r") as json_file:
-        duration_data = json.load(json_file)
+    data = DataAnalyzer.DataAnalyzer("ExportedData", "CreatedAois")
+    results = data.analyze_data()
 
-    check_if_dir_exist(args.result_dir)
-
-    timestamp_excel_parser = TimestampFileParser.TimestampFileParser()
-    timestamp_data = timestamp_excel_parser.get_aoi_start_end_from_data(args.timestamp_dir)
-
-    event_names = [event_name for [event_name, event_data] in events_data.items() if event_name != "DurationTimestampSample"]
-    event_time_calculator = EventOccurrenceTimeCalculator.EventOccurrenceTimeCalculator(config_file=events_data, timestamp_data=timestamp_data)
-    aois_data_collection = event_time_calculator.get_data_from_mileage(args.timestamp_dir)
-
-    aois_duration_data = event_time_calculator.get_millage_from_time(args.timestamp_dir, duration_data)
-
-    update_event_config(aois_duration_data, args.config, events_data)
-
-    aois_creator = AoisCreator.AoisCreator(aois_data_collection, events_data, timestamp_data, args.result_dir)
-    aois_creator.create_multiple_aoi_files()
+    data_printer = ResultPrinter.ResultPrinter(results)
+    data_printer.print_results()
