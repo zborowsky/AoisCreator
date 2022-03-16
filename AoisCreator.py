@@ -1,4 +1,3 @@
-import datetime
 import json
 import os
 import random
@@ -58,9 +57,9 @@ class AoisCreator:
     def create_multiple_aoi_files(self):
         file_names = list(self.timestamp_data.keys())
         cnt = 0
-        for aoi_data in self.aois_data:
+        for aoi_data in self.aois_data.values():
             timestamp_key = file_names[cnt]
-            media_duration = self.timestamp_data[timestamp_key]["end_offset"]
+            media_duration = self.timestamp_data[timestamp_key]["end_offset_value"]
             self.create_aoi_file(aoi_data, timestamp_key, media_duration)
             cnt += 1
 
@@ -70,6 +69,7 @@ class AoisCreator:
             sequence = self.prepare_sequence(aoi_data[aoi_name])
             vertices = self.event_configs[aoi_name]["Vertices"]
             aois_data.append(self.create_aoi_entry(aoi_name, sequence, vertices))
+
         data = {
             "Aois": aois_data,
             "Tags": [
