@@ -91,3 +91,9 @@ in EventConfigs.json you must have:
         ]
 ```
 
+## How excel timestamp should look like
+
+Every timestamp should be provided in .xlsx format and have 3 columns:
+"Time", "Distance[km]", "event", "offset T"
+
+In "event" column always must be "start"/"stop" records
