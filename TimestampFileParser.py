@@ -87,7 +87,7 @@ class TimestampFileParser:
             user_dicts = {}
             aois_timing = {}
             timestamp_files = self.get_timestamps_files()
-            task1 = progress.add_task("[green]Updating EventConfigs.json", total=len(timestamp_files))
+            task1 = progress.add_task("[green]Processing EventConfigs.json", total=len(timestamp_files))
             while not progress.finished:
                 for file in timestamp_files:
                     excel_worksheet = openpyxl.load_workbook(file, data_only=True).active

@@ -95,7 +95,7 @@ class DataAnalyzer:
         result = {}
         file_list = self.get_data_files_list(self.aois_dir, ".aois")
         for data_file in file_list:
-            participant_id = re.search(r"\((.*)\)", data_file.split("/")[-1]).group(1)
+            participant_id = re.search(r"(u[0-9]+)", data_file.split("/")[-1]).group(1)
             with open(data_file) as json_file:
                 result[participant_id] = json.load(json_file)
 
