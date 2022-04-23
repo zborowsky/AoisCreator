@@ -6,7 +6,11 @@ import openpyxl
 import os
 from rich.progress import Progress
 import logging
-from rich.logging import RichHandler
+from rich.style import Style
+from rich.console import Console
+
+info = Style(color="green", bold=True)
+error = Style(color="red", bold=True)
 
 
 class TimestampFileParser:
@@ -18,6 +22,7 @@ class TimestampFileParser:
         self.event_name = "event"
         self.config_file = config_file
         self.log = logging.getLogger("rich")
+        self.console = Console()
 
     def get_timestamps_files(self):
         return [self.timestamp_dir + "/" + file for file in os.listdir(self.timestamp_dir) if ".xlsx" in file]
@@ -75,19 +80,28 @@ class TimestampFileParser:
             filename = filename.replace(extension, "")
         return filename
 
-    def show_progress(self, current_number, all_to_proceed_number):
-        os.system("cls")
-        if all_to_proceed_number != 1:
-            self.log.info("Found ", all_to_proceed_number, "timestamps files")
-            self.log.info("Timestamp data processing progress: " + str(
-                round(current_number / (all_to_proceed_number - 1) * 100, 2)) + "%")
+    def check_if_timestamp_in_timestamp_list(self, timestamp_files, selected_timestamp_name):
+        result = [timestamp for timestamp in timestamp_files if selected_timestamp_name in timestamp]
+        result_len = len(result)
 
-    def get_aois_data(self):
+        if result_len == 0:
+            self.console.print("ERR SampleVideoName timestamp could not be found in provided dir", style=error)
+            exit(-1)
+        elif result_len > 1:
+            self.console.print("ERR More than one SampleVideoName timestamp was found", style=error)
+            exit(-1)
+        else:
+            return result
+
+    def get_aois_data(self, config_timestamp=""):
         with Progress() as progress:
             user_dicts = {}
             aois_timing = {}
             timestamp_files = self.get_timestamps_files()
-            task1 = progress.add_task("[green]Processing EventConfigs.json", total=len(timestamp_files))
+            if config_timestamp:
+                timestamp_files = self.check_if_timestamp_in_timestamp_list(timestamp_files, config_timestamp)
+
+            task1 = progress.add_task("[green]Processing timestamp data", total=len(timestamp_files))
             while not progress.finished:
                 for file in timestamp_files:
                     excel_worksheet = openpyxl.load_workbook(file, data_only=True).active
