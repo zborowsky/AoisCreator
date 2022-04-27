@@ -1,8 +1,21 @@
-# Required libs:
-- rich
-- openpyxl
-- shapely
+#Pre-requirements
+* All required libs installed
+* Excel Timestamp
+* Event configuration files
+* Aois Duration Configuration* (not neccesary)
 
+## Required libs:
+All required libs placed in requirements.txt
+
+## Excel timestamp Requirement
+
+Every timestamp should be provided in .xlsx format and have the following columns:
+* "Time"
+* "Distance[km]"
+* "event"
+* "offset T"
+
+Event columns must always have <strong>"start"</strong> and <strong>"end"</strong> entry
 
 # Script arguments
 | Argument        | Description                                         | Is required                                 |
@@ -13,7 +26,6 @@
  | --data_dir      | Directory where exported eyetracker data are stored | No, default it is set to ExportedData       |
  | --create_aois   | Select if you want create aois                      | No                                          |
  | --analyze_data  | Select if you want to analyze Data                  | No                                          |
- | --create_aois   | Select if you want to update_configuration          | No                                          |
 
 
 # How to create Aois:
@@ -90,10 +102,3 @@ in EventConfigs.json you must have:
             0
         ]
 ```
-
-## How excel timestamp should look like
-
-Every timestamp should be provided in .xlsx format and have 3 columns:
-"Time", "Distance[km]", "event", "offset T"
-
-In "event" column always must be "start"/"stop" records

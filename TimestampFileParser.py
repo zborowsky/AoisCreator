@@ -5,12 +5,7 @@ import re
 import openpyxl
 import os
 from rich.progress import Progress
-import logging
-from rich.style import Style
-from rich.console import Console
-
-info = Style(color="green", bold=True)
-error = Style(color="red", bold=True)
+from RichHelper import console, error, warning
 
 
 class TimestampFileParser:
@@ -21,8 +16,6 @@ class TimestampFileParser:
         self.offset_column_name = "offset T"
         self.event_name = "event"
         self.config_file = config_file
-        self.log = logging.getLogger("rich")
-        self.console = Console()
 
     def get_timestamps_files(self):
         return [self.timestamp_dir + "/" + file for file in os.listdir(self.timestamp_dir) if ".xlsx" in file]
@@ -40,21 +33,18 @@ class TimestampFileParser:
                 elif cell.value == self.event_name:
                     column_signs[self.event_name] = cell.column
 
-        if self.time_column_name not in column_signs:
-            self.log.error("Time column not found in {file}, current column name is: {time_name}".format(file=file_dir, time_name=self.time_column_name))
-            exit(-1)
-        elif self.distance_column_name not in column_signs:
-            self.log.error("Distance column name not found in {file}, searched for column with name: {distance_name}".format(file=file_dir, distance_name=self.distance_column_name))
-            exit(-1)
-        elif self.offset_column_name not in column_signs:
-            self.log.error("Offset column name not found in {file}, searched for column with name: {offset_name}".format(file=file_dir, offset_name=self.offset_column_name))
-            exit(-1)
-        elif self.event_name not in column_signs:
-            self.log.error("Event column name not found in {file}, searched for column with name: {event_name}".format(file=file_dir, event_name=self.event_name))
-            exit(-1)
+        necessary_columns = {
+            self.time_column_name, self.distance_column_name, self.offset_column_name,  self.event_name
+        }
 
-        self.log.info("Columns signs found in {file} successfully".format(file=file_dir))
-        return column_signs
+        if not all(col in column_signs for col in necessary_columns):
+            console.print("\nERR Some necessary column not found in {file}".format(file=file_dir), style=error)
+            console.print("ERR Necessary columns are:", style=error)
+            for col in necessary_columns:
+                console.print("{col}".format(col=col), style=warning)
+            return None
+        else:
+            return column_signs
 
     def get_start_stop_offset(self, worksheet, column_signs):
         result = {}
@@ -80,36 +70,62 @@ class TimestampFileParser:
             filename = filename.replace(extension, "")
         return filename
 
-    def check_if_timestamp_in_timestamp_list(self, timestamp_files, selected_timestamp_name):
+    @staticmethod
+    def check_if_timestamp_in_timestamp_list(timestamp_files, selected_timestamp_name):
         result = [timestamp for timestamp in timestamp_files if selected_timestamp_name in timestamp]
         result_len = len(result)
 
         if result_len == 0:
-            self.console.print("ERR SampleVideoName timestamp could not be found in provided dir", style=error)
+            console.print("ERR SampleVideoName timestamp could not be found in provided dir", style=error)
             exit(-1)
         elif result_len > 1:
-            self.console.print("ERR More than one SampleVideoName timestamp was found", style=error)
+            console.print("ERR More than one SampleVideoName timestamp was found", style=error)
             exit(-1)
         else:
             return result
 
-    def get_aois_data(self, config_timestamp=""):
+    @staticmethod
+    def check_if_start_and_stop_is_set(event_column, file, worksheet):
+        result = {"start": 0, "end": 0}
+        for column in worksheet.iter_cols(min_col=event_column, max_col=event_column):
+            for cell in column:
+                if cell.value == "start":
+                    result["start"] += 1
+                elif cell.value == "end":
+                    result["end"] += 1
+        if result["start"] == 1 and result["end"] == 1:
+            return True
+        else:
+            console.print("\nERR Found {start_records} 'start' entries and {end_records} 'end' entries, both should be equal '1', in timestamp {file}".format(start_records=result["start"], end_records=result["end"], file=file), style=error)
+            return False
+
+    def get_aois_data(self, update_config_timestamp=""):
         with Progress() as progress:
-            user_dicts = {}
-            aois_timing = {}
+            user_dicts = dict()
+            aois_timing = dict()
+            column_signs = dict()
             timestamp_files = self.get_timestamps_files()
-            if config_timestamp:
-                timestamp_files = self.check_if_timestamp_in_timestamp_list(timestamp_files, config_timestamp)
+
+            if update_config_timestamp:
+                timestamp_files = self.check_if_timestamp_in_timestamp_list(timestamp_files, update_config_timestamp)
 
             task1 = progress.add_task("[green]Processing timestamp data", total=len(timestamp_files))
             while not progress.finished:
                 for file in timestamp_files:
-                    excel_worksheet = openpyxl.load_workbook(file, data_only=True).active
-                    participant_id = re.search(r"\((.*)\)", file.split("/")[-1]).group(1)
-                    column_signs = self.get_column_sign(file, excel_worksheet)
-                    user_dicts[participant_id] = self.get_start_stop_offset(excel_worksheet, column_signs)
-                    aois_timing_data = self.get_data_from_mileage(excel_worksheet, column_signs, user_dicts[participant_id])
-                    aois_timing[participant_id] = self.allign_aoi_events_with_offset(aois_timing_data, user_dicts[participant_id])
+                    participant_id = re.search(r"\((.*)\)", file.split("/")[-1])
+                    if participant_id:
+                        participant_id = participant_id.group(1)
+
+                        excel_worksheet = openpyxl.load_workbook(file, data_only=True).active
+                        column_signs = self.get_column_sign(file, excel_worksheet)
+                        event_start_stop_set = self.check_if_start_and_stop_is_set(column_signs[self.event_name], file, excel_worksheet)
+
+                        if column_signs and event_start_stop_set:
+                            user_dicts[participant_id] = self.get_start_stop_offset(excel_worksheet, column_signs)
+                            aois_timing_data = self.get_data_from_mileage(excel_worksheet, column_signs, user_dicts[participant_id])
+                            aois_timing[participant_id] = self.align_aoi_events_with_offset(aois_timing_data, user_dicts[participant_id])
+                    else:
+                        console.print("\nERR Timestamp filename should consist participant id placed in () for example xxx(u01).xlsx", style=error)
                     progress.update(task1, advance=1)
             return user_dicts, aois_timing, column_signs
 
@@ -124,11 +140,11 @@ class TimestampFileParser:
                 excel_worksheet = openpyxl.load_workbook(timestamp_file, data_only=True).active
                 return self.get_millage_from_time(excel_worksheet, user_dicts[sample_video_participant_id], duration_data, column_signs)
 
-        self.log.error("No suitable timestamp found")
+        console.print("ERR No suitable timestamp found", style=error)
         exit(-1)
 
     @staticmethod
-    def allign_aoi_events_with_offset(aois_timings, offset_dict):
+    def align_aoi_events_with_offset(aois_timings, offset_dict):
         adjusted_timing = {}
         for [aoi_timing_name, aois_timing_list] in aois_timings.items():
             adjusted_aois_timing_list = []

@@ -1,6 +1,6 @@
 import pandas
-from rich.console import Console
 from rich.table import Table
+from RichHelper import console
 
 
 class ResultPrinter:
@@ -10,8 +10,6 @@ class ResultPrinter:
         self.sort_by = sort
 
     def print_results(self):
-        console = Console()
-
         table = Table(show_header=True, header_style="bold magenta")
         table.add_column("Participant", style="dim", width=12)
 

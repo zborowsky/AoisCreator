@@ -1,32 +1,25 @@
 import csv
 import json
+import numpy
 import os
-
-from rich.console import Console
-from rich.style import Style
-from rich.progress import Progress
-
-from shapely.geometry import Point
-
-from shapely.geometry.polygon import Polygon
+import pandas
 import re
 
-import numpy
-import pandas
-from numpy import float64
+from rich.progress import Progress
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
 
-info = Style(color="green", bold=True)
-error = Style(color="red", bold=True)
-warning = Style(color="blue", bold=True)
+from numpy import float64
+from RichHelper import console, info, error, warning
 
 
 class DataAnalyzer:
-    def __init__(self, data_export_dir, aois_dir, features, dump_data=False, dump_dir="AnalyzeDump"):
+    def __init__(self, data_export_dir, aois_dir, features, filter_dict, dump_data=False, dump_dir="AnalyzeDump"):
         self.data_export_dir = data_export_dir
         self.aois_dir = aois_dir
         self.features = features
-        self.console = Console()
         self.dump_data = dump_data
+        self.filter_dict = filter_dict
         self.dump_dir = dump_dir
 
     @staticmethod
@@ -67,59 +60,87 @@ class DataAnalyzer:
 
         return result
 
-    def analyze_data(self):
+    def get_participant_features(self, participant_id, participant_data):
+        participant_features = {}
+        for feature in self.features:
+            feature_arr = participant_data[feature].values.astype(str)
+            unique_feature = numpy.unique(feature_arr)
+            if len(unique_feature) == 1:
+                participant_features[feature] = unique_feature[0]
+            else:
+                console.print("\nWARNING feature for participant with id {id} not consistent".format(feature=feature, id=participant_id), style=warning)
+                participant_features[feature] = ""
+        return participant_features
+
+    def analyze_participants_data(self):
         with Progress() as analyze_progress:
             analyze_task = analyze_progress.add_task("[green]Analyzing occulographic data", total=len(self.read_exported_data()))
             analyze_report = {}
             while not analyze_progress.finished:
                 for [participant_id, participant_data] in self.read_exported_data().items():
-                    match_result = []
-                    participant_data_as_list = participant_data.values.tolist()
-                    participant_data = participant_data.astype({"AOI": str}, errors='raise')
-                    aois_assigned_to_participant = self.build_aoi_dict(self.read_aois_data(), participant_id)
-                    aoi_result = {}
-                    for key in aois_assigned_to_participant.keys():
-                        aoi_result[key] = 0.0
+                    participant_analyze_result, aois_rows_index = self.analyze_data(participant_id, participant_data)
 
-                    for row in range(participant_data.shape[0]):
-                        for [aoi_name, aoi_data] in aois_assigned_to_participant.items():
-                            fixation_start = participant_data["Start"][row]
-                            fixation_stop = participant_data["Stop"][row]
+                    if participant_analyze_result and aois_rows_index:
+                        analyze_report[participant_id] = participant_analyze_result
 
-                            participant_fixation_point = Point(participant_data["FixationPointX"][row], participant_data["FixationPointY"][row])
-                            for status in aoi_data["AoiStatus"]:
-                                if type(status) == tuple:
-                                    if fixation_start >= status[0] and fixation_stop <= status[1]:
-                                        if aoi_data["AoiPolygon"].contains(participant_fixation_point):
-                                            hit_rate = participant_data["Duration"][row] * 100 / aoi_data["Duration"]
-                                            aoi_result[aoi_name] = aoi_result[aoi_name] + hit_rate
-                                            participant_data.at[row, "Hit_proportion"] = 1
-                                        else:
-                                            participant_data.at[row, "Hit_proportion"] = 0
-
-                                        participant_data.at[row, "AOI"] = aoi_name
-                                        match_result.append(participant_data_as_list[row])
-                                else:
-                                    if fixation_start >= status:
-                                        if aoi_data["AoiPolygon"].contains(participant_fixation_point):
-                                            hit_rate = participant_data["Duration"][row] * 100 / aoi_data["Duration"]
-                                            aoi_result[aoi_name] = aoi_result[aoi_name] + hit_rate
-                                            participant_data.at[row, "Hit_proportion"] = 1
-                                        else:
-                                            participant_data.at[row, "Hit_proportion"] = 0
-
-                                        participant_data.at[row, "AOI"] = aoi_name
-                                        match_result.append(participant_data_as_list[row])
-                    for feature in self.features:
-                        try:
-                            aoi_result[feature] = participant_data[feature][0]
-                        except KeyError:
-                            self.console.print("WRN there is no information about {feature} for user with participant id {id}".format(feature=feature, id=participant_id), style=warning )
-                    analyze_report[participant_id] = aoi_result
-                    if self.dump_data:
-                        self.dump_analyze_data_to_tsv(participant_id, participant_data.columns, match_result)
+                        if self.dump_data:
+                            participant_data_as_list = participant_data.values.tolist()
+                            dump_data = [participant_data_as_list[row_index] for row_index in aois_rows_index]
+                            self.dump_analyze_data_to_tsv(participant_id, participant_data.columns, dump_data)
                     analyze_progress.update(analyze_task, advance=1)
+
             return analyze_report
+
+    @staticmethod
+    def count_if_aoi_hit(participant_data, participant_fixation_point, row, aoi_data, aoi_result, aoi_name, aois_rows_index):
+        if aoi_data["AoiPolygon"].contains(participant_fixation_point):
+            hit_rate = participant_data["Duration"][row] * 100 / aoi_data["Duration"]
+            aoi_result[aoi_name] = aoi_result[aoi_name] + hit_rate
+            participant_data.at[row, "Hit_proportion"] = 1
+        else:
+            participant_data.at[row, "Hit_proportion"] = 0
+
+        participant_data.at[row, "AOI"] = aoi_name
+        aois_rows_index.append(row)
+
+    def analyze_data(self, participant_id, participant_data):
+
+        participant_data = participant_data.astype({"AOI": str}, errors='raise')
+        aois_assigned_to_participant = self.build_aoi_dict(self.read_aois_data(), participant_id)
+
+        aoi_result = self.get_participant_features(participant_id, participant_data) if self.features else {}
+
+        if self.filter_dict:
+            for [filter_key, filter_values] in self.filter_dict.items():
+                if aoi_result[filter_key] in filter_values:
+                    return self.count_hit_rate_for_aoi(aoi_result, aois_assigned_to_participant, participant_data)
+                else:
+                    return None, None
+
+        else:
+            return self.count_hit_rate_for_aoi(aoi_result, aois_assigned_to_participant, participant_data)
+
+    def count_hit_rate_for_aoi(self, aoi_result, aois_assigned_to_participant, participant_data):
+        aois_rows_index = []
+        aoi_result.update({key: 0.0 for key in aois_assigned_to_participant.keys()})
+
+        for row in range(participant_data.shape[0]):
+            for [aoi_name, aoi_data] in aois_assigned_to_participant.items():
+                fixation_start = participant_data["Start"][row]
+                fixation_stop = participant_data["Stop"][row]
+
+                participant_fixation_point = Point(participant_data["FixationPointX"][row], participant_data["FixationPointY"][row])
+                for aoi_time_slot in aoi_data["AoiStatus"]:
+                    if type(aoi_time_slot) == tuple:
+                        if fixation_start >= aoi_time_slot[0] and fixation_stop <= aoi_time_slot[1]:
+                            self.count_if_aoi_hit(participant_data, participant_fixation_point, row, aoi_data,
+                                                  aoi_result, aoi_name, aois_rows_index)
+                    else:
+                        if fixation_start >= aoi_time_slot:
+                            self.count_if_aoi_hit(participant_data, participant_fixation_point, row, aoi_data,
+                                                  aoi_result, aoi_name, aois_rows_index)
+
+        return aoi_result, aois_rows_index
 
     def dump_analyze_data_to_tsv(self, file_name, headers, rows):
         with open('{base}/{file}.tsv'.format(base=self.dump_dir, file=file_name), 'w+', newline='', encoding="UTF-8") as f_output:
@@ -148,25 +169,26 @@ class DataAnalyzer:
             data = pandas.read_csv(data_file, sep='\t')
             participant_id = self.validate_data(data)
             if participant_id in result.keys():
-                raise "ERROR: more than one data file for one participant"
+                console.print("ERROR: more than one data file for one participant", style=error)
+                exit(-1)
             else:
                 result[participant_id] = self.convert_normalized_data_to_pixels_if_needed(data)
 
         return result
 
-    def validate_data(self, exported_data, recording_col="Recording", participant_col="Participant"):
+    @staticmethod
+    def validate_data(exported_data, recording_col="Recording", participant_col="Participant"):
         participant_ids = numpy.unique(exported_data[participant_col].values)
         recording_ids = numpy.unique(exported_data[recording_col].values)
 
         if len(participant_ids) == 1 and len(recording_ids) == 1:
             return participant_ids[0]
         elif len(participant_ids) != 1:
-            self.raise_data_exception(participant_col)
+            console.print("ERR More than one participant in file", style=error)
+            exit(-1)
         else:
-            self.raise_data_exception(recording_col)
-
-    def raise_data_exception(self, column_name):
-        raise Exception(f"More than one {column_name} in file".format(column_name=column_name))
+            console.print("ERR More than one recording in file", style=error)
+            exit(-1)
 
     @staticmethod
     def convert_normalized_data_to_pixels_if_needed(pandas_data, fixation_x_col="FixationPointX", fixation_y_col="FixationPointY"):
@@ -174,7 +196,8 @@ class DataAnalyzer:
         data_type_y = pandas_data[fixation_y_col].dtypes
 
         if data_type_x != data_type_y:
-            raise "ERR: fixation data not consistent"
+            console.print("ERR: fixation data not consistent", style=error)
+            exit(-1)
         elif data_type_x == float64 and data_type_y == float64:
             number_of_values = len(pandas_data[fixation_x_col])
             converted_fixation_x = []

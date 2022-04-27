@@ -1,18 +1,14 @@
 import json
-import os
 import argparse
-import shutil
+import re
 
 import AoisCreator
 import DurationConfigValidator
 import ResultPrinter
 import TimestampFileParser
 import DataAnalyzer
-
-from rich.console import Console
-from rich.style import Style
-info = Style(color="green", bold=True)
-error = Style(color="red", bold=True)
+from HelperMethods import check_if_dir_exist, read_json
+from RichHelper import console, info, error, warning
 
 
 def print_events_from_config(events_config_data, events_config_filename):
@@ -25,22 +21,6 @@ def print_events_from_config(events_config_data, events_config_filename):
         exit(-1)
 
 
-def check_if_dir_exist(result_dir):
-    if os.path.isdir(result_dir):
-        print("INFO: The directory for Aois result files already exist.")
-        if os.listdir(result_dir) != 0:
-            print("WARNING: The directory contains some files.")
-            selected_option = input("Do you wish to delete them? Press Y to continue:\n")
-            if selected_option.lower() == 'y':
-                shutil.rmtree(result_dir)
-                os.mkdir(result_dir)
-            else:
-                print("WARNING: Some AOIS file may be overwritten")
-    else:
-        os.mkdir(result_dir)
-        print("INFO: The directory for Aois files were successfully created.")
-
-
 def update_event_config(duration_dict, event_config_dir, event_config_data):
     for [aoiName, durationMillageList] in duration_dict.items():
         event_config_data[aoiName]["VideoOccurrences"] = durationMillageList
@@ -49,18 +29,21 @@ def update_event_config(duration_dict, event_config_dir, event_config_data):
         json.dump(event_config_data, updated_event_config, indent=4)
 
 
-def process_timestamp_data(timestamp_dir, events_data, config_timestamp=""):
-    timestamp_excel_parser = TimestampFileParser.TimestampFileParser(args.timestamp_dir, events_data)
-    return timestamp_excel_parser.get_aois_data(config_timestamp)
-
-
 def create_aois(timestamp_dir, events_info, aois_dir):
     timestamp_excel_parser = TimestampFileParser.TimestampFileParser(timestamp_dir, events_info)
     start_stop_offsets, aois_timings_data, column_signs = timestamp_excel_parser.get_aois_data()
 
-    check_if_dir_exist(aois_dir)
-    aois_creator = AoisCreator.AoisCreator(aois_timings_data, events_info, start_stop_offsets, aois_dir)
-    aois_creator.create_multiple_aoi_files()
+    if start_stop_offsets and aois_timings_data and column_signs:
+        check_if_dir_exist(aois_dir)
+        aois_creator = AoisCreator.AoisCreator(aois_timings_data, events_info, start_stop_offsets, aois_dir)
+        aois_creator.create_multiple_aoi_files()
+        console.print("INFO AOIS successfully created and saved in", args.aois_result_dir, style=info)
+    else:
+        console.print("WRN no Aois created", style=warning)
+
+
+def parse_filers(data_filter):
+    return {feature: value.split(",") for feature, value in [filter_feature.split("/") for filter_feature in data_filter.split(";")]}
 
 
 def update_config(timestamp_dir, events_info, config_file_name):
@@ -79,15 +62,21 @@ def update_config(timestamp_dir, events_info, config_file_name):
 
 
 def analyze_data(result_directory, features, sort_by, dump_data):
-    data = DataAnalyzer.DataAnalyzer("ExportedData", result_directory, features, dump_data)
-    results = data.analyze_data()
+    filter_dict = parse_filers(args.filter_data) if args.filter_data else dict()
+    print(filter_dict)
+
+    data = DataAnalyzer.DataAnalyzer("ExportedData", result_directory, features, filter_dict, dump_data)
+    results = data.analyze_participants_data()
+
+    if dump_data:
+        console.print('\nINFO Analyze data successfully dumped into {dump_dir} directory'.format(dump_dir=args.dump_dir),
+            style=info)
 
     data_printer = ResultPrinter.ResultPrinter(results, features, sort_by)
     data_printer.print_results()
 
 
 if __name__ == '__main__':
-    console = Console()
     parser = argparse.ArgumentParser(description='Process some arguments.')
     parser.add_argument('--config', dest='config', default="EventConfigs.json", type=str, help='Default json config is EventContfigs.json')
     parser.add_argument('--aois_result_dir', dest='aois_result_dir', default="CreatedAois", type=str, help='Default result dir is CreatedAois')
@@ -99,11 +88,11 @@ if __name__ == '__main__':
     parser.add_argument("--statistics_data", dest='statistics_data', type=str)
     parser.add_argument("--sort_by", dest='sort_by', type=str)
     parser.add_argument('--dump_analyze_data', dest='dump_analyze_data', action='store_true')
+    parser.add_argument('--dump_dir', dest='dump_dir', type=str, default="AnalyzeDump")
+    parser.add_argument('--filter_data', dest='filter_data', type=str)
 
     args = parser.parse_args()
-
-    with open(args.config, "r") as json_file:
-        events_data = json.load(json_file)
+    events_data = read_json(args.config)
 
     if args.update_config:
         update_config(args.timestamp_dir, events_data, args.config)
@@ -113,7 +102,6 @@ if __name__ == '__main__':
 
     if args.create_aois:
         create_aois(args.timestamp_dir, events_data, args.aois_result_dir)
-        console.print("INFO AOIS successfully created and saved in", args.aois_result_dir, style=info)
 
     if args.analyze_data:
         suspect_features = args.statistics_data.split(";")
