@@ -1,8 +1,8 @@
-#Pre-requirements
+# Pre-requirements
 * All required libs installed
 * Excel Timestamp
 * Event configuration files
-* Aois Duration Configuration* (not neccesary)
+* Aois Duration Configuration* (not necessary)
 
 ## Required libs:
 All required libs placed in requirements.txt
@@ -18,14 +18,14 @@ Every timestamp should be provided in .xlsx format and have the following column
 Event columns must always have <strong>"start"</strong> and <strong>"end"</strong> entry
 
 # Script arguments
-| Argument        | Description                                         | Is required                                 |
-|-----------------|-----------------------------------------------------|---------------------------------------------|
-| --timestamp_dir | Directory where timestamps files can be found       | Yes                                         |
-| --config        | Name of aois config data                            | No, default it is set to EventContfigs.json |
-| --result_dir    | Directory to which, created Aois file will be saved | No, default it is set to CreatedAois        |
- | --data_dir      | Directory where exported eyetracker data are stored | No, default it is set to ExportedData       |
- | --create_aois   | Select if you want create aois                      | No                                          |
- | --analyze_data  | Select if you want to analyze Data                  | No                                          |
+| Argument        | Description                                         |
+|-----------------|-----------------------------------------------------|
+| --timestamp_dir | Directory where timestamps files can be found       |
+| --config        | Name of aois config data                            |
+| --result_dir    | Directory to which, created Aois file will be saved |
+ | --data_dir      | Directory where exported eyetracker data are stored |
+ | --create_aois   | Select if you want create aois                      |
+ | --analyze_data  | Select if you want to analyze Data                  |
 
 
 # How to create Aois:
