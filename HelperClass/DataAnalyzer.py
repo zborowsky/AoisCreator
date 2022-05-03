@@ -11,7 +11,7 @@ from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
 from numpy import float64
-from RichHelper import console, info, error, warning
+from HelperClass.RichHelper import console, info, error, warning
 
 
 class DataAnalyzer:
@@ -223,7 +223,11 @@ class DataAnalyzer:
 
     @staticmethod
     def get_data_files_list(directory, extension):
-        return [directory + "/" + file for file in os.listdir(directory) if extension in file]
+        try:
+            return [directory + "/" + file for file in os.listdir(directory) if extension in file]
+        except Exception as err:
+            console.print("\nERR {err}, script is closing".format(err=err), style=error)
+            exit(-1)
 
     def read_aois_data(self):
         result = {}

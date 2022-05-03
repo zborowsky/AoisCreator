@@ -1,4 +1,4 @@
-from RichHelper import console, info, error
+from HelperClass.RichHelper import console, info, error
 
 
 class DurationConfigValidator:

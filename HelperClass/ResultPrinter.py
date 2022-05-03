@@ -2,7 +2,7 @@ import pprint
 
 import pandas
 from rich.table import Table
-from RichHelper import console
+from HelperClass.RichHelper import console
 
 
 class ResultPrinter:

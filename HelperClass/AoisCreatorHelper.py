@@ -1,10 +1,10 @@
 import os
 import random
-from RichHelper import console, info_small
-from HelperMethods import save_to_json
+from HelperClass.RichHelper import console, info_small
+from HelperClass.HelperMethods import save_to_json
 
 
-class AoisCreator:
+class AoisCreatorHelper:
     def __init__(self, aois_data, event_configs, timestamp_data, result_dir):
         self.aois_data = aois_data
         self.event_configs = event_configs

@@ -1,8 +1,14 @@
 {
     "SampleVideoName": "Timestamps-2021.10.08-10.06.32 (u01)",
 
-    "FirstAnimalNearTracks": ["00:01:40", "00:01:50"],
-    "OccupiedTrack": ["00:02:12", "00:02:20", "00:02:25", "00:02:35"],
-    "FirstManNearTracks": ["00:02:40", "00:02:54", "00:03:10", "00:03:21"],
-    "EngineFailure": ["00:03:36"]
+    "Prawe okno": ["00:00:06:873508"],
+    "Blysk blachy": ["00:01:06:081785", "00:01:44:093785"],
+    "Widoki  z lewej": ["00:00:06:873508"],
+    "Przod": ["00:00:06:768106"],
+    "Blysk 2 blachy": ["00:01:05:43013", "00:02:54:12613"],
+    "Predkosciomierz": ["00:00:06:768106"],
+    "Czas i kary": ["00:00:06:768106"],
+    "Kierowanie skroty klawiszowe": ["00:00:06:768106"],
+    "Trakcja z prawej": ["00:00:06:873508"],
+    "Kontrolki pomocnicze": ["00:00:06:768106"]
 }
