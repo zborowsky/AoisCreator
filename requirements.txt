@@ -1,5 +1,5 @@
 numpy==1.22.3
 openpyxl==3.0.9
 pandas==1.4.1
-rich==12.3.0
+rich==12.4.1
 Shapely==1.8.1

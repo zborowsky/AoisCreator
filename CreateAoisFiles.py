@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     try:
         event_data = read_json(args.event_config)
-    except ValueError:
+    except Exception as error:
         console.print("ERR {duration_config} is not valid JSON file".format(duration_config=args.duration_config), style=error)
         exit(-1)
 
@@ -32,13 +32,13 @@ if __name__ == '__main__':
             style=error)
         exit(-1)
 
-    timestamp_excel_parser = TimestampFileParser(args.timestamp_dir, event_data, args.export_data_dir)
-    start_stop_offsets, aois_timings_data, column_signs = timestamp_excel_parser.get_aois_data()
+    timestamp_excel_parser = TimestampFileParser(args.timestamp_dir, event_data)
+    aois_timings_data, column_signs = timestamp_excel_parser.get_aois_data(args.export_data_dir)
 
-    if start_stop_offsets and aois_timings_data and column_signs:
+    if aois_timings_data and column_signs:
         check_if_dir_exist(args.aois_file_dir)
-        aois_creator = AoisCreatorHelper(aois_timings_data, event_data, start_stop_offsets, args.aois_file_dir)
-        aois_creator.create_multiple_aoi_files()
+        aois_creator = AoisCreatorHelper(aois_timings_data, event_data, args.aois_file_dir)
+        aois_creator.create_multiple_aoi_files(args.export_data_dir)
         console.print("INFO AOIS successfully created and saved in", args.aois_file_dir, style=info)
     else:
         console.print("WRN no Aois created", style=warning)

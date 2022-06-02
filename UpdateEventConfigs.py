@@ -33,14 +33,14 @@ if __name__ == '__main__':
     if sum([1 if key != "SampleVideoName" else 0 for key in duration_data.keys()]) == 0:
         console.print("WRN no AOIS to update found in AoisDurationConfig.json", style=warning)
     else:
-        timestamp_excel_parser = TimestampFileParser(args.timestamp_dir, event_data, args.export_data_dir)
-        start_stop_offsets, aois_timings_data, column_signs = timestamp_excel_parser.get_aois_data(duration_data["SampleVideoName"])
+        timestamp_excel_parser = TimestampFileParser(args.timestamp_dir, event_data)
+        aois_timings_data, column_signs = timestamp_excel_parser.get_aois_data(args.export_data_dir,
+                                                                               duration_data["SampleVideoName"])
 
         duration_config_validator = DurationConfigValidator(duration_data)
         duration_config_validator.validate()
 
-        aois_millage_data = timestamp_excel_parser.update_millage_config_based_on_time(start_stop_offsets, duration_data,
-                                                                                       column_signs)
+        aois_millage_data = timestamp_excel_parser.update_millage_config_based_on_time(args.export_data_dir, duration_data, column_signs)
         for [aoiName, durationMillageList] in aois_millage_data.items():
             event_data[aoiName]["VideoOccurrences"] = durationMillageList
 
