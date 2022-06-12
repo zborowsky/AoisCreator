@@ -458,13 +458,37 @@ Be sure that number of records in "VideoOccurences" corresponds to number of pro
 
 For example if you in AoisDurationConfig.json have
 ```
-    "FirstAnimalNearTracks": ["00:01:40", "00:01:50"],
+    "Zamek": [
+      {"Status": true, "Time": "00:00:51:795662"},
+      {"Status": true, "Time": "00:01:34:228525"},
+      {"Status": true, "Time": "00:02:21:342053"},
+      {"Status": true, "Time": "00:03:16:073448"},
+      {"Status": false, "Time": "00:04:12:989909"}
+    ],
 ```
 
 in EventConfigs.json you must have:
 ```
-        "VideoOccurrences": [
-            0,
-            0
-        ]
+    "VideoOccurrences": [
+        {
+            "AoiState": false,
+            "Millage": 0.0
+        },
+        {
+            "AoiState": false,
+            "Millage": 0.0
+        },
+        {
+            "AoiState": false,
+            "Millage": 0.0
+        },
+        {
+            "AoiState": false,
+            "Millage": 0.0
+        },
+        {
+            "AoiState": false,
+            "Millage": 0.0
+        }
+    ]
 ```
