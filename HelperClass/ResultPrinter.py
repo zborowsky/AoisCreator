@@ -31,7 +31,7 @@ class ResultPrinter:
 
         names = [value.header for value in table.columns]
 
-        f = open('results E2B1-1.csv', 'w')
+        f = open('AnalyzeDataResults.csv', 'w')
         # create the csv writer
         writer = csv.writer(f)
         writer.writerow(names)

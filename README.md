@@ -98,8 +98,6 @@ To work correctly this script needs
   * **Time**
   * **Distance[km]**
   * **offset T**
-  * **event** 
-    * must always have **"end"** entry, which will be used to calculate approx media duration.
 
 * Event based Metrics exported from Tobii program with default export settings one file per participant, participant id must be placed in filename between **()** for example **(u1)** for participant **u1**
 * Properly filled EventConfigs.json (can be done with use of UpdateEventConfigs)
@@ -135,40 +133,224 @@ Timestamp file will be taken by default from Timestamps directory if you wish to
 
 ```
 {
-    "FirstAnimalNearTracks": {
+    "Drzewa": {
         "Vertices": [
-            {
-                "X": 200,
-                "Y": 200
-            },
-            {
-                "X": 300,
-                "Y": 200
-            },
-            {
-                "X": 300,
-                "Y": 100
-            },
-            {
-                "X": 200,
-                "Y": 100
-            }
+            [
+                {
+                    "X": 0.0,
+                    "Y": 286.398631308811
+                },
+                {
+                    "X": 852.728828058169,
+                    "Y": 285.474764756202
+                },
+                {
+                    "X": 928.485885372113,
+                    "Y": 468.400342172797
+                },
+                {
+                    "X": 940.496150556031,
+                    "Y": 521.060735671514
+                },
+                {
+                    "X": 3.69546621043627,
+                    "Y": 655.021385799829
+                }
+            ]
         ],
         "VideoOccurrences": [
-            0,
-            0
+            {
+                "AoiState": true,
+                "Millage": 10.624071
+            },
+            {
+                "AoiState": false,
+                "Millage": 11.316325
+            }
         ]
     },
+	"Zegar": {
+        "Vertices": [
+            [
+                {
+                    "X": 1463.73795761079,
+                    "Y": 20.9633911368015
+                },
+                {
+                    "X": 1865.74181117534,
+                    "Y": 20.9633911368015
+                },
+                {
+                    "X": 1865.74181117534,
+                    "Y": 136.878612716763
+                },
+                {
+                    "X": 1463.73795761079,
+                    "Y": 136.878612716763
+                }
+            ]
+        ],
+        "VideoOccurrences": [
+            {
+                "AoiState": true,
+                "Millage": 10.375
+            }
+        ]
+    },
+    "Budynek": {
+        "Vertices": [
+            [
+                {
+                    "X": 742.270055600403,
+                    "Y": 449.914285055849
+                },
+                {
+                    "X": 901.189317374928,
+                    "Y": 449.914285055849
+                },
+                {
+                    "X": 901.189317374928,
+                    "Y": 513.865442297498
+                },
+                {
+                    "X": 742.270055600403,
+                    "Y": 513.865442297498
+                }
+            ],
+            [
+                {
+                    "X": 681.133585625357,
+                    "Y": 473.990624381321
+                },
+                {
+                    "X": 872.553002716503,
+                    "Y": 473.990624381321
+                },
+                {
+                    "X": 872.553002716503,
+                    "Y": 548.482372536469
+                },
+                {
+                    "X": 681.133585625357,
+                    "Y": 548.482372536469
+                }
+            ],
+            [
+                {
+                    "X": 626.339033316393,
+                    "Y": 495.569433807453
+                },
+                {
+                    "X": 846.887241475667,
+                    "Y": 495.569433807453
+                },
+                {
+                    "X": 846.887241475667,
+                    "Y": 579.508357444156
+                },
+                {
+                    "X": 626.339033316393,
+                    "Y": 579.508357444156
+                }
+            ],
+            [
+                {
+                    "X": 520.480911113437,
+                    "Y": 487.658168813275
+                },
+                {
+                    "X": 800.998034245393,
+                    "Y": 487.658168813275
+                },
+                {
+                    "X": 800.998034245393,
+                    "Y": 589.388504269105
+                },
+                {
+                    "X": 520.480911113437,
+                    "Y": 589.388504269105
+                }
+            ],
+            [
+                {
+                    "X": 455.118198941589,
+                    "Y": 480.139796268752
+                },
+                {
+                    "X": 771.616693442439,
+                    "Y": 480.139796268752
+                },
+                {
+                    "X": 771.616693442439,
+                    "Y": 592.544985457262
+                },
+                {
+                    "X": 455.118198941589,
+                    "Y": 592.544985457262
+                }
+            ],
+            [
+                {
+                    "X": 105.320786997435,
+                    "Y": 434.217279726261
+                },
+                {
+                    "X": 475.791274593671,
+                    "Y": 434.217279726261
+                },
+                {
+                    "X": 475.791274593671,
+                    "Y": 562.634730538922
+                },
+                {
+                    "X": 105.320786997435,
+                    "Y": 562.634730538922
+                }
+            ]
+        ],
+        "VideoOccurrences": [
+            {
+                "AoiState": true,
+                "Millage": 16.12888
+            },
+            {
+                "AoiState": true,
+                "Millage": 16.248755
+            },
+            {
+                "AoiState": true,
+                "Millage": 16.310875
+            },
+            {
+                "AoiState": true,
+                "Millage": 16.382408
+            },
+            {
+                "AoiState": true,
+                "Millage": 16.426903
+            },
+            {
+                "AoiState": false,
+                "Millage": 16.539181
+            }
+        ]
+    }
 }
 ```
+
+### Different types of aois in Event Configs:
+Here we can find 3 different aois, each one of different type.
+1. "Drzewa" is static AOI with enable and disable time set. For aois of this type there should be only one entry in Vertices list, and two entries in VideoOccurrences, first one with activation millage second one with deactivation millage.
+2. "Zegar" is static AOI with only enable time set. For aois of this type there should be only one entry in Vertices list, and one entry in VideoOccurrences.
+3. "Budynek" is dynamic AOI, with enable and disable time. All entries in VideoOccurences should have corresponding entry in Vertices list. In this type of aois there is possibility of having few records with AoiState true in row. 
+It's caused by the fact that this aoi can change its shape in time.
+
 ## CreateAoisScript requirements
 To work correctly this script needs 
 * Timestamp from game which will contains following data
   * **Time**
   * **Distance[km]**
   * **offset T**
-  * **event** 
-    * must always have **"end"** entry, which will be used to calculate approx media duration.
 
 
 # SplitExportData script
@@ -243,14 +425,34 @@ Timestamp file will be taken by default from Timestamps directory if you wish to
 ## How should AoisDurationConfig.json looks like:
 ```
 {
-    "SampleVideoName": "Timestamps-2021.10.08-10.06.32 (u01)",
-    "FirstAnimalNearTracks": ["00:01:40", "00:01:50"],
+    "SampleVideoName": "Timestamps-2021.10.08-09.54.43 (u01)",
+    "Drzewa": [
+      {"Status": true, "Time": "00:01:09:42951"},
+      {"Status": false, "Time": "00:01:46:244386"}
+    ],
+    "Zegar": [
+      {"Status": true, "Time": "00:00:00:00"}
+    ],
+    "Budynek": [
+      {"Status": true, "Time": "00:06:47:714281"},
+      {"Status": true, "Time": "00:06:56:465499"},
+      {"Status": true, "Time": "00:07:04:30892"},
+      {"Status": true, "Time": "00:07:11:809962"},
+      {"Status": true, "Time": "00:07:16:31059"},
+      {"Status": false, "Time": "00:07:23:311557"}
+    ]
 }
 ```
 
 SampleVideoName - here you need to provide timestamp based on which rest of data will be deduced
 
-Next you provide pair AoiName: [Start_time, Stop_time].
+Next you provide structure of data in following way:
+```
+    "AoiName": [
+    {"Status": aoiStatus, "Time": timeEntry}
+    ]
+```
+Where 'AoiName' should be replaced with your wishes aoi name, 'aoiStatus' should be replaced with status neither true or false, and "timeEntry" should be replaced with time when status change occurred, be sure that time is formatted in this way hh:mm:ss:ms. 
 
 Be sure that number of records in "VideoOccurences" corresponds to number of provided time records in aois.
 
